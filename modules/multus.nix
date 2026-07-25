@@ -33,7 +33,7 @@ in
         ];
       };
 
-      manifests.rke2-multus-config = mkIf (cfg.multus.extraConfig != { }) {
+      manifests.rke2-multus-config = {
         content = {
           apiVersion = "helm.cattle.io/v1";
           kind = "HelmChartConfig";
@@ -41,7 +41,11 @@ in
             name = "rke2-multus";
             namespace = "kube-system";
           };
-          spec.valuesContent = builtins.toJSON cfg.multus.extraConfig;
+          spec.valuesContent = recursiveUpdate {
+            # Multus meta-plugin + Whereabouts IPAM. Gives selected pods a second
+            # interface on the LAN bridge (br0) for local-network exposure (e.g. Jellyfin UPnP).
+            rke2-whereabouts.enabled = true;
+          } cfg.multus.extraConfig;
         };
       };
     };
