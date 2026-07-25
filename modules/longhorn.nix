@@ -72,7 +72,7 @@ in
         "L+ /usr/local/bin - - - - /run/current-system/sw/bin/"
       ];
 
-      services.rke2-longhorn-default-disks-config = {
+      services.rke2-longhorn-default-disks-config = mkIf (cfg.role == "server") {
         description = "Apply Longhorn default-disks-config annotation";
         wants = [ "rke2-server.service" ];
         after = [ "rke2-server.service" ];
