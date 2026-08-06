@@ -22,14 +22,14 @@ with lib;
     };
 
     clusterCidrIPv6 = mkOption {
-      type = types.str;
-      default = "fd00::/56";
-      description = "The IPv6 pod CIDR passed to RKE2";
+      type = types.nullOr types.str;
+      default = null;
+      description = "The IPv6 pod CIDR passed to RKE2. Set to enable dual-stack.";
     };
 
     serviceCidr = mkOption {
       type = types.str;
-      default = "10.96.0.0/12,fd01::/112";
+      default = "10.96.0.0/12";
       description = "The service CIDR passed to RKE2";
     };
 
