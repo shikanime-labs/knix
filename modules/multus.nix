@@ -41,11 +41,13 @@ in
             name = "rke2-multus";
             namespace = "kube-system";
           };
-          spec.valuesContent = recursiveUpdate {
-            # Multus meta-plugin + Whereabouts IPAM. Gives selected pods a second
-            # interface on the LAN bridge (br0) for local-network exposure (e.g. Jellyfin UPnP).
-            rke2-whereabouts.enabled = true;
-          } cfg.multus.extraConfig;
+          spec.valuesContent = builtins.toJSON (
+            recursiveUpdate {
+              # Multus meta-plugin + Whereabouts IPAM. Gives selected pods a second
+              # interface on the LAN bridge (br0) for local-network exposure (e.g. Jellyfin UPnP).
+              rke2-whereabouts.enabled = true;
+            } cfg.multus.extraConfig
+          );
         };
       };
     };
