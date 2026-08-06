@@ -104,14 +104,19 @@ in
         "net.ipv4.tcp_wmem" = "4096 65536 16777216";
 
         # Mirror the IPv4 forwarding posture on IPv6 and accept Router
-        # Advertisements on the cluster-facing interface. Privacy extensions
-        # are disabled separately via networking.tempAddresses below.
+        # Advertisements on the cluster-facing interface. Disable privacy
+        # extensions: canal host-gw installs node global IPv6 addresses as
+        # route next-hops, and rotating temporary addresses (use_tempaddr=2)
+        # expire and leave next-hops permanently FAILED, breaking cross-node
+        # IPv6 pod routing and the IPv6 kube-dns VIP.
         "net.ipv6.conf.${cfg.interface}.accept_ra" = 2;
         "net.ipv6.conf.${cfg.interface}.accept_ra_defrtr" = 0;
         "net.ipv6.conf.${cfg.interface}.accept_ra_mtu" = 1;
         "net.ipv6.conf.${cfg.interface}.accept_ra_pinfo" = 1;
         "net.ipv6.conf.${cfg.interface}.accept_redirects" = 0;
         "net.ipv6.conf.${cfg.interface}.autoconf" = 1;
+        "net.ipv6.conf.${cfg.interface}.use_tempaddr" = 0;
+        "net.ipv6.conf.default.use_tempaddr" = 0;
         "net.ipv6.conf.all.forwarding" = 1;
         "net.ipv6.conf.default.forwarding" = 1;
 
@@ -123,61 +128,52 @@ in
       };
     };
 
-    networking = {
-      # Disable IPv6 privacy extensions (use_tempaddr=0). The native option
-      # also emits udev rules so hot-plugged interfaces inherit it, which
-      # raw sysctl cannot do. Without this, canal host-gw picks up rotating
-      # temporary addresses as route next-hops, which expire and break
-      # cross-node IPv6 pod routing.
-      tempAddresses = "disabled";
-
-      firewall = {
-        # IPv6 egress is constrained to local, link-local, and ULA prefixes that
-        # the cluster uses. Global IPv6 traffic is rejected unless explicitly
-        # allowed elsewhere.
-        extraCommands = ''
-          ip6tables -A OUTPUT -o ${cfg.interface} -d ::1/128 -j ACCEPT
-          ip6tables -A OUTPUT -o ${cfg.interface} -d fe80::/10 -j ACCEPT
-          ip6tables -A OUTPUT -o ${cfg.interface} -d fc00::/7 -j ACCEPT
-          ip6tables -A OUTPUT -o ${cfg.interface} -d fd00::/108 -j ACCEPT
-          ip6tables -A OUTPUT -o ${cfg.interface} -d fd01::/108 -j ACCEPT
-          ip6tables -A OUTPUT -o ${cfg.interface} -d 2000::/3 -j REJECT --reject-with icmp6-addr-unreachable
-        '';
-        extraStopCommands = ''
-          ip6tables -D OUTPUT -o ${cfg.interface} -d ::1/128 -j ACCEPT 2>/dev/null || true
-          ip6tables -D OUTPUT -o ${cfg.interface} -d fe80::/10 -j ACCEPT 2>/dev/null || true
-          ip6tables -D OUTPUT -o ${cfg.interface} -d fc00::/7 -j ACCEPT 2>/dev/null || true
-          ip6tables -D OUTPUT -o ${cfg.interface} -d fd00::/108 -j ACCEPT 2>/dev/null || true
-          ip6tables -D OUTPUT -o ${cfg.interface} -d fd01::/108 -j ACCEPT 2>/dev/null || true
-          ip6tables -D OUTPUT -o ${cfg.interface} -d 2000::/3 -j REJECT --reject-with icmp6-addr-unreachable 2>/dev/null || true
-        '';
-        interfaces.${cfg.interface} =
-          let
-            rke2ApiServerPort = 6443;
-            rke2SupervisorPort = 9345;
-            rke2KubeletPort = 10250;
-            rke2EtcdClientPort = 2379;
-            rke2EtcdPeerPort = 2380;
-            rke2EtcdMetricsPort = 2381;
-            nodePortRange = {
-              from = 30000;
-              to = 32767;
-            };
-          in
-          {
-            allowedTCPPorts = [
-              rke2KubeletPort
-            ]
-            ++ optionals (cfg.role == "server") [
-              rke2ApiServerPort
-              rke2SupervisorPort
-              rke2EtcdClientPort
-              rke2EtcdPeerPort
-              rke2EtcdMetricsPort
-            ];
-            allowedTCPPortRanges = [ nodePortRange ];
+    networking.firewall = {
+      # IPv6 egress is constrained to local, link-local, and ULA prefixes that
+      # the cluster uses. Global IPv6 traffic is rejected unless explicitly
+      # allowed elsewhere.
+      extraCommands = ''
+        ip6tables -A OUTPUT -o ${cfg.interface} -d ::1/128 -j ACCEPT
+        ip6tables -A OUTPUT -o ${cfg.interface} -d fe80::/10 -j ACCEPT
+        ip6tables -A OUTPUT -o ${cfg.interface} -d fc00::/7 -j ACCEPT
+        ip6tables -A OUTPUT -o ${cfg.interface} -d fd00::/108 -j ACCEPT
+        ip6tables -A OUTPUT -o ${cfg.interface} -d fd01::/108 -j ACCEPT
+        ip6tables -A OUTPUT -o ${cfg.interface} -d 2000::/3 -j REJECT --reject-with icmp6-addr-unreachable
+      '';
+      extraStopCommands = ''
+        ip6tables -D OUTPUT -o ${cfg.interface} -d ::1/128 -j ACCEPT 2>/dev/null || true
+        ip6tables -D OUTPUT -o ${cfg.interface} -d fe80::/10 -j ACCEPT 2>/dev/null || true
+        ip6tables -D OUTPUT -o ${cfg.interface} -d fc00::/7 -j ACCEPT 2>/dev/null || true
+        ip6tables -D OUTPUT -o ${cfg.interface} -d fd00::/108 -j ACCEPT 2>/dev/null || true
+        ip6tables -D OUTPUT -o ${cfg.interface} -d fd01::/108 -j ACCEPT 2>/dev/null || true
+        ip6tables -D OUTPUT -o ${cfg.interface} -d 2000::/3 -j REJECT --reject-with icmp6-addr-unreachable 2>/dev/null || true
+      '';
+      interfaces.${cfg.interface} =
+        let
+          rke2ApiServerPort = 6443;
+          rke2SupervisorPort = 9345;
+          rke2KubeletPort = 10250;
+          rke2EtcdClientPort = 2379;
+          rke2EtcdPeerPort = 2380;
+          rke2EtcdMetricsPort = 2381;
+          nodePortRange = {
+            from = 30000;
+            to = 32767;
           };
-      };
+        in
+        {
+          allowedTCPPorts = [
+            rke2KubeletPort
+          ]
+          ++ optionals (cfg.role == "server") [
+            rke2ApiServerPort
+            rke2SupervisorPort
+            rke2EtcdClientPort
+            rke2EtcdPeerPort
+            rke2EtcdMetricsPort
+          ];
+          allowedTCPPortRanges = [ nodePortRange ];
+        };
     };
 
     services = {
