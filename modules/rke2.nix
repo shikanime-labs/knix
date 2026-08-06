@@ -104,19 +104,13 @@ in
         "net.ipv4.tcp_wmem" = "4096 65536 16777216";
 
         # Mirror the IPv4 forwarding posture on IPv6 and accept Router
-        # Advertisements on the cluster-facing interface. Disable privacy
-        # extensions: canal host-gw installs node global IPv6 addresses as
-        # route next-hops, and rotating temporary addresses (use_tempaddr=2)
-        # expire and leave next-hops permanently FAILED, breaking cross-node
-        # IPv6 pod routing and the IPv6 kube-dns VIP.
+        # Advertisements on the cluster-facing interface.
         "net.ipv6.conf.${cfg.interface}.accept_ra" = 2;
         "net.ipv6.conf.${cfg.interface}.accept_ra_defrtr" = 0;
         "net.ipv6.conf.${cfg.interface}.accept_ra_mtu" = 1;
         "net.ipv6.conf.${cfg.interface}.accept_ra_pinfo" = 1;
         "net.ipv6.conf.${cfg.interface}.accept_redirects" = 0;
         "net.ipv6.conf.${cfg.interface}.autoconf" = 1;
-        "net.ipv6.conf.${cfg.interface}.use_tempaddr" = 0;
-        "net.ipv6.conf.default.use_tempaddr" = 0;
         "net.ipv6.conf.all.forwarding" = 1;
         "net.ipv6.conf.default.forwarding" = 1;
 
