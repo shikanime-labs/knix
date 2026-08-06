@@ -196,17 +196,19 @@ in
       };
 
       rke2 = {
+        inherit (cfg)
+          nodeIP
+          role
+          serverAddr
+          tokenFile
+          ;
         enable = true;
-        inherit (cfg) role;
         autoDeployCharts = mkAutoDeployCharts cfg.charts;
         cisHardening = true;
         extraFlags = mkExtraFlags cfg.extraConfig;
         gracefulNodeShutdown.enable = true;
         nodeLabel = mkNodeLabels cfg.labels;
         manifests = mkManifests cfg.manifests;
-      }
-      // {
-        inherit (cfg) nodeIP serverAddr tokenFile;
       };
     };
   };
