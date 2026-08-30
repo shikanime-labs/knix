@@ -176,7 +176,7 @@ in
           cfg.clusterCidr
           cfg.clusterCidrIPv6
         ];
-        ingress-controller = mkDefault "none";
+        ingress-controller = "none";
         kube-controller-manager-arg = [
           "node-cidr-mask-size-ipv4=${toString cfg.nodeCidrMaskSize}"
           "node-cidr-mask-size-ipv6=${toString cfg.nodeCidrMaskSizeIPv6}"
