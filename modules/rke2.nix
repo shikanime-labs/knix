@@ -200,6 +200,17 @@ in
         nodeLabel = mkNodeLabels cfg.labels;
         manifests = mkManifests cfg.manifests;
       };
+
+      # Reap orphaned containerd-shims / kubelet / mounts on every stop so a
+      # restart starts from a clean cgroup. Without this an unclean rke2 stop
+      # (e.g. tailnet blip) leaves dozens of shims behind and a crash-loop
+      # respawns onto the dirty cgroup — wedging the node. rke2's own killall
+      # script does not touch the data dirs.
+      systemd.services.rke2-server.serviceConfig = {
+        ExecStopPost = mkAfter [ "${config.services.rke2.package}/bin/rke2-killall.sh" ];
+        RestartSteps = mkOverride 90 10;
+        RestartMaxDelaySec = mkOverride 90 120;
+      };
     };
   };
 }
