@@ -8,6 +8,5 @@
     ./multus.nix
     ./prometheus.nix
     ./rke2.nix
-    ./traefik.nix
   ];
 }

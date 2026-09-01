@@ -260,15 +260,6 @@ Flux instance sync is passed through
 | `services.knix.addons.longhorn.mountRoot`                               | `"/mnt"` | Mount root scanned for additional Longhorn disks                           |
 | `services.knix.addons.longhorn.storageReservedPercentageForDefaultDisk` | `30`     | Percentage of disk space reserved on the default `/var/lib/longhorn/` disk |
 
-### Traefik
-
-| Option                              | Default | Purpose                                         |
-| ----------------------------------- | ------- | ----------------------------------------------- |
-| `services.knix.traefik.enable`      | `true`  | Enable Traefik addon                            |
-| `services.knix.traefik.extraConfig` | `{}`    | Additional Helm values merged into rke2-traefik |
-
-Traefik configures Gateway API and disables Ingress by default.
-
 ### Canal
 
 | Option                            | Default       | Purpose                                                     |
