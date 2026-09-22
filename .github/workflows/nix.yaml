@@ -51,6 +51,7 @@ jobs:
             }}
       - id: direnv
         uses: shikanime-studio/actions/direnv@v9
+      - name: Run flake check
         run:
           nix flake check --accept-flake-config --no-pure-eval --system "${{
           matrix.system }}"
