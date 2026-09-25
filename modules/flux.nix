@@ -45,6 +45,12 @@ in
             description = "Flux operator chart version";
           };
 
+          configSecretName = mkOption {
+            type = types.str;
+            default = "";
+            description = "Existing Secret holding the Flux web UI configuration; when set, the anonymous authentication default is not rendered";
+          };
+
           extraConfig = mkOption {
             type = types.attrsOf types.raw;
             default = { };
@@ -118,16 +124,22 @@ in
         repo = "oci://ghcr.io/controlplaneio-fluxcd/charts/flux-operator";
         targetNamespace = "flux-system";
         values = recursiveUpdate {
-          web = {
+          web = recursiveUpdate {
             networkPolicy.create = true;
-            config.authentication = {
-              anonymous = {
-                groups = [ "system:masters" ];
-                username = "admin";
+          } (
+            optionalAttrs (cfg.addons.flux.operator.configSecretName == "") {
+              config.authentication = {
+                anonymous = {
+                  groups = [ "system:masters" ];
+                  username = "admin";
+                };
+                type = "Anonymous";
               };
-              type = "Anonymous";
-            };
-          };
+            }
+            // optionalAttrs (cfg.addons.flux.operator.configSecretName != "") {
+              configSecretName = cfg.addons.flux.operator.configSecretName;
+            }
+          );
         } cfg.addons.flux.operator.extraConfig;
       };
 
