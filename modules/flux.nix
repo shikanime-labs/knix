@@ -45,12 +45,6 @@ in
             description = "Flux operator chart version";
           };
 
-          configSecretName = mkOption {
-            type = types.str;
-            default = "flux-web";
-            description = "Existing Secret holding the Flux web UI configuration; the anonymous authentication default is rendered only when this is empty, and the Secret must exist or the operator exits at startup";
-          };
-
           extraConfig = mkOption {
             type = types.attrsOf types.raw;
             default = { };
@@ -123,27 +117,7 @@ in
         name = "flux-operator";
         repo = "oci://ghcr.io/controlplaneio-fluxcd/charts/flux-operator";
         targetNamespace = "flux-system";
-        values = recursiveUpdate {
-          web =
-            recursiveUpdate
-              {
-                networkPolicy.create = true;
-              }
-              (
-                optionalAttrs (cfg.addons.flux.operator.configSecretName == "") {
-                  config.authentication = {
-                    anonymous = {
-                      groups = [ "system:masters" ];
-                      username = "admin";
-                    };
-                    type = "Anonymous";
-                  };
-                }
-                // optionalAttrs (cfg.addons.flux.operator.configSecretName != "") {
-                  configSecretName = cfg.addons.flux.operator.configSecretName;
-                }
-              );
-        } cfg.addons.flux.operator.extraConfig;
+        values = cfg.addons.flux.operator.extraConfig;
       };
 
       "tofu-controller" = {
