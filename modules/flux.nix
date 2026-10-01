@@ -50,6 +50,12 @@ in
             default = { };
             description = "Additional Flux operator chart values";
           };
+
+          extraDeploy = mkOption {
+            type = types.listOf types.attrs;
+            default = [ ];
+            description = "Extra resources deployed alongside the Flux operator chart";
+          };
         };
 
         tofu = {
@@ -118,6 +124,7 @@ in
         repo = "oci://ghcr.io/controlplaneio-fluxcd/charts/flux-operator";
         targetNamespace = "flux-system";
         values = cfg.addons.flux.operator.extraConfig;
+        extraDeploy = cfg.addons.flux.operator.extraDeploy;
       };
 
       "tofu-controller" = {

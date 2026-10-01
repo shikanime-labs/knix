@@ -10,9 +10,8 @@
 ## Code style
 
 - Nix: 2-space indentation, `with lib;` at the top of each file
-- Nix: dotted assignment (`a.b.c = v;`) for a single leaf under a shared
-  parent key; a record literal once two or more keys share the parent, keys
-  sorted
+- Nix: dotted assignment (`a.b.c = v;`) for a single leaf under a shared parent
+  key; a record literal once two or more keys share the parent, keys sorted
 - Options: use `mkEnableOption` for feature flags, `mkOption` with proper types
 - Submodules: group related options under named submodules (e.g., `kernel`)
 - Defaults: provide opinionated defaults that match the Shikanime RKE2
@@ -51,5 +50,5 @@
 This repository ships a `.envrc` for direnv. Run `direnv allow` once after
 cloning; direnv then loads the Nix flake dev shell automatically on every
 directory change (`.envrc` runs
-`use flake . --accept-flake-config --no-pure-eval`). Without direnv, enter
-the same shell manually with `nix develop`.
+`use flake . --accept-flake-config --no-pure-eval`). Without direnv, enter the
+same shell manually with `nix develop`.

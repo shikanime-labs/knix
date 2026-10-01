@@ -90,7 +90,7 @@ jobs:
             ${{ steps.createGithubAppToken.outputs.token || secrets.GITHUB_TOKEN
             }}
       - id: direnv
-        uses: shikanime-studio/actions/direnv@v9
+        uses: shikanime-studio/actions/nix/integration@v9
         uses: shikanime-studio/actions/nix/integration@v9
         with:
           name: ${{ matrix.name }}
