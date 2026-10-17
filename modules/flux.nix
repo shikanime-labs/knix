@@ -71,7 +71,53 @@ in
     description = "Flux addon settings";
   };
 
-  config = mkIf cfg.addons.flux.enable {
+  config = mkIf (cfg.addons.flux.enable && cfg.role == "server") {
+    sops.secrets.flux-operator-web-client-secret = {
+      sopsFile = ../../secrets/flux.enc.yaml;
+      restartUnits = [ "systemd-tmpfiles-setup.service" ];
+    };
+
+    systemd.tmpfiles.rules = [
+      "L+ /var/lib/rancher/rke2/server/manifests/flux-operator-config.json - - - - ${
+        config.sops.templates."flux-operator-config.json".path
+      }"
+    ];
+
+    sops.templates."flux-operator-config.json".file =
+      (pkgs.formats.json { }).generate "flux-operator-config.json"
+        {
+          apiVersion = "v1";
+          kind = "Secret";
+          metadata = {
+            name = "flux-operator-web";
+            namespace = "flux-system";
+          };
+          type = "Opaque";
+          stringData."config.yaml" = builtins.toJSON {
+            apiVersion = "web.fluxcd.controlplane.io/v1";
+            kind = "Config";
+            spec = {
+              baseURL = "https://flux.i.shikanime.studio";
+              authentication = {
+                type = "OAuth2";
+                oauth2 = {
+                  provider = "OIDC";
+                  clientID = "flux";
+                  clientSecret = config.sops.placeholder."flux-operator-web-client-secret";
+                  issuerURL = "https://accounts.i.shikanime.studio";
+                  scopes = [
+                    "openid"
+                    "profile"
+                    "email"
+                    "groups"
+                    "offline_access"
+                  ];
+                };
+              };
+            };
+          };
+        };
+
     services.knix.charts = {
       flux = {
         inherit (cfg.addons.flux.instance) version;
@@ -128,9 +174,7 @@ in
         name = "tofu-controller";
         repo = "https://flux-iac.github.io/tofu-controller";
         targetNamespace = "flux-system";
-        values = recursiveUpdate {
-          awsPackage.install = false;
-        } cfg.addons.flux.tofu.extraConfig;
+        values = recursiveUpdate { awsPackage.install = false; } cfg.addons.flux.tofu.extraConfig;
       };
     };
 
