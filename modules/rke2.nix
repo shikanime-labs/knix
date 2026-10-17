@@ -9,41 +9,7 @@ with lib;
 let
   cfg = config.services.knix;
 
-  mkAutoDeployChart =
-    chart:
-    let
-      baseChart = removeAttrs chart [ "failurePolicy" ];
-    in
-    if chart.failurePolicy == null then
-      baseChart
-    else
-      baseChart
-      // {
-        extraFieldDefinitions = (baseChart.extraFieldDefinitions or { }) // {
-          spec.failurePolicy = chart.failurePolicy;
-        };
-      };
-
   mkNodeLabels = labels: mapAttrsToList (name: value: "${name}=${value}") labels;
-
-  mkAutoDeployCharts =
-    charts: optionalAttrs (cfg.role == "server") (mapAttrs (_: mkAutoDeployChart) charts);
-
-  mkExtraFlags =
-    attrs:
-    concatLists (
-      mapAttrsToList (
-        name: value:
-        if value == true then
-          [ "--${name}" ]
-        else if builtins.isList value then
-          map (v: "--${name}=${toString v}") value
-        else
-          [ "--${name}=${toString value}" ]
-      ) attrs
-    );
-
-  mkManifests = manifests: optionalAttrs (cfg.role == "server") manifests;
 in
 {
   config = mkIf cfg.enable {
@@ -58,7 +24,7 @@ in
 
       # These values are chosen to keep cluster networking stable under load.
       # They cover forwarding, bridge netfilter, neighbor table pressure,
-      # conntrack capacity, and the TCP buffer/window sizing used by the overlay
+      # conntrack capacity, and the TCP buffer/window sizing used on the overlay
       # paths on both IPv4 and IPv6.
       kernel.sysctl = {
         # File descriptor and inode watcher ceilings. Longhorn, Flux, and
@@ -142,64 +108,30 @@ in
         ip6tables -D OUTPUT -o ${cfg.interface} -d fd01::/108 -j ACCEPT 2>/dev/null || true
         ip6tables -D OUTPUT -o ${cfg.interface} -d 2000::/3 -j REJECT --reject-with icmp6-addr-unreachable 2>/dev/null || true
       '';
-      interfaces.${cfg.interface} =
-        let
-          rke2ApiServerPort = 6443;
-          rke2SupervisorPort = 9345;
-          rke2KubeletPort = 10250;
-          rke2EtcdClientPort = 2379;
-          rke2EtcdPeerPort = 2380;
-          rke2EtcdMetricsPort = 2381;
-          nodePortRange = {
+      interfaces.${cfg.interface} = {
+        allowedTCPPorts = [
+          10250
+        ];
+        allowedTCPPortRanges = [
+          {
             from = 30000;
             to = 32767;
-          };
-        in
-        {
-          allowedTCPPorts = [
-            rke2KubeletPort
-          ]
-          ++ optionals (cfg.role == "server") [
-            rke2ApiServerPort
-            rke2SupervisorPort
-            rke2EtcdClientPort
-            rke2EtcdPeerPort
-            rke2EtcdMetricsPort
-          ];
-          allowedTCPPortRanges = [ nodePortRange ];
-        };
+          }
+        ];
+      };
     };
 
-    services = {
-      knix.extraConfig = optionalAttrs (cfg.role == "server") {
-        cluster-cidr = [
-          cfg.clusterCidr
-          cfg.clusterCidrIPv6
-        ];
-        ingress-controller = "none";
-        kube-controller-manager-arg = [
-          "node-cidr-mask-size-ipv4=${toString cfg.nodeCidrMaskSize}"
-          "node-cidr-mask-size-ipv6=${toString cfg.nodeCidrMaskSizeIPv6}"
-        ];
-        service-cidr = cfg.serviceCidr;
-        secrets-encryption = true;
-      };
-
-      rke2 = {
-        inherit (cfg)
-          nodeIP
-          role
-          serverAddr
-          tokenFile
-          ;
-        enable = true;
-        autoDeployCharts = mkAutoDeployCharts cfg.charts;
-        cisHardening = true;
-        extraFlags = mkExtraFlags cfg.extraConfig;
-        gracefulNodeShutdown.enable = true;
-        nodeLabel = mkNodeLabels cfg.labels;
-        manifests = mkManifests cfg.manifests;
-      };
+    services.rke2 = {
+      inherit (cfg)
+        nodeIP
+        role
+        serverAddr
+        tokenFile
+        ;
+      enable = true;
+      cisHardening = true;
+      gracefulNodeShutdown.enable = true;
+      nodeLabel = mkNodeLabels cfg.labels;
     };
   };
 }

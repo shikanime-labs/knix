@@ -8,5 +8,6 @@
     ./multus.nix
     ./prometheus.nix
     ./rke2.nix
+    ./server.nix
   ];
 }
