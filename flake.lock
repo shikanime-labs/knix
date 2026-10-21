@@ -98,11 +98,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792236550,
-        "narHash": "sha256-JHwvmbY4i5AH0S35FB4r0QHC8iFaSDYG5m6A/OSTUkY=",
+        "lastModified": 1792605234,
+        "narHash": "sha256-/PLURYR/g1WRgSsuoaNfPrUCD/5rchNq5DogNuRcV6E=",
         "owner": "shikanime-studio",
         "repo": "devlib",
-        "rev": "87aef11f6883dd8db209267a8b7c6005c6e14873",
+        "rev": "317058eb9e03ba71ae1bc7b439a0280b0c531b69",
         "type": "github"
       },
       "original": {
@@ -315,11 +315,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1791487292,
-        "narHash": "sha256-tqM7xDEsaeK1p6VvRygeZ9LkQRpUUkbRT02BHv6hnTM=",
+        "lastModified": 1792506237,
+        "narHash": "sha256-Q/8KLB6jNfpaUN1HAedE/u/Et9feE/zYSsutBLKrCFk=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "8edc0c72e3a38faf5434e40d1f19431125fe4b30",
+        "rev": "5adc50831c259f87faeb09ddf930d43597197473",
         "type": "github"
       },
       "original": {

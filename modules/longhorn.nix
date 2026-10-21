@@ -68,9 +68,7 @@ in
     };
 
     systemd = {
-      tmpfiles.rules = [
-        "L+ /usr/local/bin - - - - /run/current-system/sw/bin/"
-      ];
+      tmpfiles.rules = [ "L+ /usr/local/bin - - - - /run/current-system/sw/bin/" ];
 
       services.rke2-longhorn-default-disks-config = mkIf (cfg.role == "server") {
         description = "Apply Longhorn default-disks-config annotation";

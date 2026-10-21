@@ -65,11 +65,7 @@ in
           namespace = "kube-system";
         };
         spec.valuesContent = builtins.toJSON (
-          recursiveUpdate {
-            flannel = {
-              inherit (cfg.canal) backend;
-            };
-          } cfg.canal.extraConfig
+          recursiveUpdate { flannel = { inherit (cfg.canal) backend; }; } cfg.canal.extraConfig
         );
       };
     };

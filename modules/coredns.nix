@@ -36,9 +36,7 @@ in
           namespace = "kube-system";
         };
         spec.valuesContent = builtins.toJSON (
-          recursiveUpdate {
-            nodelocal.enabled = true;
-          } cfg.coredns.extraConfig
+          recursiveUpdate { nodelocal.enabled = true; } cfg.coredns.extraConfig
         );
       };
     };

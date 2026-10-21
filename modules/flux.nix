@@ -128,9 +128,7 @@ in
         name = "tofu-controller";
         repo = "https://flux-iac.github.io/tofu-controller";
         targetNamespace = "flux-system";
-        values = recursiveUpdate {
-          awsPackage.install = false;
-        } cfg.addons.flux.tofu.extraConfig;
+        values = recursiveUpdate { awsPackage.install = false; } cfg.addons.flux.tofu.extraConfig;
       };
     };
 
