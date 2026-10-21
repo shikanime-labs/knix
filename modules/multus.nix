@@ -27,11 +27,7 @@ in
   config = mkIf cfg.multus.enable {
     services.knix = {
       # Multus must be the first CNI plugin so it can delegate to canal
-      extraConfig = mkIf (cfg.role == "server") {
-        cni = mkBefore [
-          "multus"
-        ];
-      };
+      extraConfig = mkIf (cfg.role == "server") { cni = mkBefore [ "multus" ]; };
 
       manifests.rke2-multus-config = {
         content = {

@@ -68,28 +68,19 @@
         treefmt-nix.flakeModule
       ];
 
-      perSystem =
-        {
-          pkgs,
-          lib,
-          ...
-        }:
-        {
-          devenv.shells.default = {
-            imports = [
-              devlib.devenvModules.git
-              devlib.devenvModules.nix
-              devlib.devenvModules.opentofu
-              devlib.devenvModules.shell
-              devlib.devenvModules.shikanime-studio
-            ];
+      perSystem = { pkgs, lib, ... }: {
+        devenv.shells.default = {
+          imports = [
+            devlib.devenvModules.git
+            devlib.devenvModules.nix
+            devlib.devenvModules.opentofu
+            devlib.devenvModules.shell
+            devlib.devenvModules.shikanime-studio
+          ];
 
-            packages = [
-              pkgs.skaffold
-            ]
-            ++ lib.optional pkgs.stdenv.hostPlatform.isLinux pkgs.nixos-facter;
-          };
+          packages = [ pkgs.skaffold ] ++ lib.optional pkgs.stdenv.hostPlatform.isLinux pkgs.nixos-facter;
         };
+      };
 
       systems = [
         "x86_64-linux"

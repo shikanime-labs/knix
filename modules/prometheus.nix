@@ -1,8 +1,4 @@
-{
-  config,
-  lib,
-  ...
-}:
+{ config, lib, ... }:
 
 with lib;
 
@@ -48,13 +44,9 @@ in
           supervisor-metrics = true;
         };
 
-        prometheus = mkIf (cfg.role == "server") {
-          inherit scrapeConfigs;
-        };
+        prometheus = mkIf (cfg.role == "server") { inherit scrapeConfigs; };
 
-        vmagent.prometheusConfig = mkIf (cfg.role == "server") {
-          scrape_configs = scrapeConfigs;
-        };
+        vmagent.prometheusConfig = mkIf (cfg.role == "server") { scrape_configs = scrapeConfigs; };
       };
   };
 }
