@@ -13,22 +13,10 @@ in
           default = true;
         };
 
-        metrics = mkOption {
-          type = types.submodule {
-            options = {
-              enable = mkEnableOption "CoreDNS metrics (prometheus endpoint + scrape)" // {
-                default = true;
-              };
-
-              scrapeAddress = mkOption {
-                type = types.str;
-                default = "rke2-coredns-metrics.kube-system.svc:9153";
-                description = "Target the prometheus scrape config hits for coredns metrics";
-              };
-            };
-          };
-          default = { };
-          description = "Metrics exposure for the coredns addon";
+        scrapeAddress = mkOption {
+          type = types.str;
+          default = "rke2-coredns-metrics.kube-system.svc:9153";
+          description = "Target the prometheus scrape config hits for coredns metrics";
         };
 
         extraConfig = mkOption {
@@ -56,7 +44,7 @@ in
         spec.valuesContent = builtins.toJSON (
           recursiveUpdate {
             nodelocal.enabled = true;
-            prometheus.service.enabled = cfg.coredns.metrics.enable;
+            prometheus.service.enabled = true;
           } cfg.coredns.extraConfig
         );
       };
@@ -64,7 +52,7 @@ in
       # The rke2 default-network-dns-policy allows only port 53 ingress to
       # kube-dns pods, which blackholes the 9153 metrics scrape. Allow the
       # metrics port explicitly; DNS (53) stays locked by the rke2 policy.
-      manifests.rke2-coredns-metrics.content = mkIf cfg.coredns.metrics.enable {
+      manifests.rke2-coredns-metrics.content = {
         apiVersion = "networking.k8s.io/v1";
         kind = "NetworkPolicy";
         metadata = {
@@ -87,15 +75,14 @@ in
         };
       };
 
-      prometheus.extraScrapeConfigs = mkIf (cfg.coredns.metrics.enable && cfg.prometheus.enable) [
+      prometheus.extraScrapeConfigs = [
         {
           job_name = "core-dns";
           scheme = "http";
           metrics_path = "/metrics";
-          static_configs = [ { targets = [ cfg.coredns.metrics.scrapeAddress ]; } ];
+          static_configs = [ { targets = [ cfg.coredns.scrapeAddress ]; } ];
         }
       ];
-
     };
   };
 }
