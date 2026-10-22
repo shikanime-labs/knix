@@ -49,32 +49,6 @@ in
         );
       };
 
-      # The rke2 default-network-dns-policy allows only port 53 ingress to
-      # kube-dns pods, which blackholes the 9153 metrics scrape. Allow the
-      # metrics port explicitly; DNS (53) stays locked by the rke2 policy.
-      manifests.rke2-coredns-metrics.content = {
-        apiVersion = "networking.k8s.io/v1";
-        kind = "NetworkPolicy";
-        metadata = {
-          name = "coredns-metrics-ingress";
-          namespace = "kube-system";
-        };
-        spec = {
-          policyTypes = [ "Ingress" ];
-          podSelector.matchLabels."k8s-app" = "kube-dns";
-          ingress = [
-            {
-              ports = [
-                {
-                  port = 9153;
-                  protocol = "TCP";
-                }
-              ];
-            }
-          ];
-        };
-      };
-
       prometheus.extraScrapeConfigs = [
         {
           job_name = "core-dns";
