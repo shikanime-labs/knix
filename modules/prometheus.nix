@@ -11,6 +11,12 @@ in
       options.enable = mkEnableOption "prometheus addon" // {
         default = true;
       };
+
+      options.extraScrapeConfigs = mkOption {
+        type = types.listOf types.raw;
+        default = [ ];
+        description = "Additional scrape configs appended to the built-in jobs";
+      };
     };
     default = { };
     description = "prometheus settings";
@@ -32,7 +38,8 @@ in
             metrics_path = "/metrics";
             static_configs = [ { targets = [ "127.0.0.1:10249" ]; } ];
           }
-        ];
+        ]
+        ++ cfg.prometheus.extraScrapeConfigs;
       in
       {
         knix.extraConfig = mkIf (cfg.role == "server") {
