@@ -78,7 +78,7 @@
             devlib.devenvModules.shikanime-studio
           ];
 
-          packages = [ pkgs.skaffold ] ++ lib.optional pkgs.stdenv.hostPlatform.isLinux pkgs.nixos-facter;
+          packages = lib.optional pkgs.stdenv.hostPlatform.isLinux pkgs.nixos-facter;
         };
       };
 
