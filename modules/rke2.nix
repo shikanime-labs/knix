@@ -121,16 +121,22 @@ in
     networking.firewall = {
       # IPv6 egress is constrained to local, link-local, and ULA prefixes that
       # the cluster uses. Global IPv6 traffic is rejected unless explicitly
-      # allowed elsewhere.
+      # allowed elsewhere. DNS is the one carve-out: kernel RA processing and
+      # DHCPv6 can register the ISP's global-scope resolver in the host
+      # resolver, and hostNetwork pods (node-local-dns) inherit it verbatim —
+      # if that resolver is unreachable under the blanket reject, external
+      # name resolution dies on the node and takes cluster DNS with it.
       extraCommands = ''
         ip6tables -A OUTPUT -o ${cfg.interface} -d ::1/128 -j ACCEPT
         ip6tables -A OUTPUT -o ${cfg.interface} -d fe80::/10 -j ACCEPT
         ip6tables -A OUTPUT -o ${cfg.interface} -d fc00::/7 -j ACCEPT
         ip6tables -A OUTPUT -o ${cfg.interface} -d fd00::/108 -j ACCEPT
         ip6tables -A OUTPUT -o ${cfg.interface} -d fd01::/108 -j ACCEPT
+        ip6tables -A OUTPUT -o ${cfg.interface} -d 2000::/3 -p udp --dport 53 -j ACCEPT
         ip6tables -A OUTPUT -o ${cfg.interface} -d 2000::/3 -j REJECT --reject-with icmp6-addr-unreachable
       '';
       extraStopCommands = ''
+        ip6tables -D OUTPUT -o ${cfg.interface} -d 2000::/3 -p udp --dport 53 -j ACCEPT 2>/dev/null || true
         ip6tables -D OUTPUT -o ${cfg.interface} -d ::1/128 -j ACCEPT 2>/dev/null || true
         ip6tables -D OUTPUT -o ${cfg.interface} -d fe80::/10 -j ACCEPT 2>/dev/null || true
         ip6tables -D OUTPUT -o ${cfg.interface} -d fc00::/7 -j ACCEPT 2>/dev/null || true
