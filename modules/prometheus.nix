@@ -31,12 +31,24 @@ in
             scheme = "http";
             metrics_path = "/metrics";
             static_configs = [ { targets = [ "127.0.0.1:2381" ]; } ];
+            relabel_configs = [
+              {
+                target_label = "instance";
+                replacement = config.networking.hostName;
+              }
+            ];
           }
           {
             job_name = "kube-proxy";
             scheme = "http";
             metrics_path = "/metrics";
             static_configs = [ { targets = [ "127.0.0.1:10249" ]; } ];
+            relabel_configs = [
+              {
+                target_label = "instance";
+                replacement = config.networking.hostName;
+              }
+            ];
           }
         ]
         ++ cfg.prometheus.extraScrapeConfigs;
