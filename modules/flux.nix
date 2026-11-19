@@ -73,7 +73,7 @@ in
 
   config = mkIf (cfg.addons.flux.enable && cfg.role == "server") {
     sops.secrets.flux-operator-web-client-secret = {
-      sopsFile = ../../secrets/flux.enc.yaml;
+      sopsFile = ../secrets/flux.enc.yaml;
       restartUnits = [ "systemd-tmpfiles-setup.service" ];
     };
 
